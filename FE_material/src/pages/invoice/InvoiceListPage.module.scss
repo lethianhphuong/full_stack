@@ -1,0 +1,262 @@
+// =============================================================================
+// InvoiceListPage Styles
+// Example of using SCSS modules with MUI
+// =============================================================================
+
+// Variables và Mixins đã được auto-import từ vite.config.ts
+// Không cần @use '@/styles/variables' as *; nữa
+
+.pageWrapper {
+  padding: $spacing-3;
+  
+  @include md {
+    padding: $spacing-4;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Summary Cards Section
+// -----------------------------------------------------------------------------
+.summarySection {
+  margin-bottom: $spacing-3;
+}
+
+.summaryCard {
+  @include card-base;
+  padding: $spacing-3;
+  @include hover-lift(-2px, $shadow-md);
+  
+  // Override MUI Card styles
+  :global(.MuiCard-root) {
+    border-radius: $radius-lg;
+  }
+}
+
+.summaryIcon {
+  @include size(48px);
+  @include flex-center;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-2;
+  
+  &--total {
+    background: rgba($primary-main, 0.12);
+    color: $primary-main;
+  }
+  
+  &--paid {
+    background: rgba($success-main, 0.12);
+    color: $success-main;
+  }
+  
+  &--pending {
+    background: rgba($warning-main, 0.12);
+    color: $warning-main;
+  }
+  
+  &--overdue {
+    background: rgba($error-main, 0.12);
+    color: $error-main;
+  }
+}
+
+.summaryValue {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-0-5;
+}
+
+.summaryLabel {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+// -----------------------------------------------------------------------------
+// Table Section
+// -----------------------------------------------------------------------------
+.tableWrapper {
+  @include card-base;
+  overflow: hidden;
+  
+  // Override MUI Table styles
+  :global {
+    .MuiTableHead-root {
+      background: $grey-100;
+      
+      .MuiTableCell-head {
+        font-weight: $font-weight-semibold;
+        color: $text-secondary;
+        border-bottom: none;
+      }
+    }
+    
+    .MuiTableBody-root {
+      .MuiTableRow-root {
+        transition: background-color $transition-fast;
+        
+        &:hover {
+          background: $grey-100;
+        }
+        
+        &:last-child .MuiTableCell-root {
+          border-bottom: none;
+        }
+      }
+      
+      .MuiTableCell-root {
+        border-bottom: 1px dashed $grey-300;
+      }
+    }
+  }
+}
+
+.tableToolbar {
+  @include flex-between;
+  padding: $spacing-2 $spacing-3;
+  border-bottom: 1px dashed $grey-300;
+  
+  @include sm-down {
+    @include flex-column;
+    gap: $spacing-2;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Status Badge
+// -----------------------------------------------------------------------------
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-0-5 $spacing-1-5;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  
+  &--paid {
+    background: rgba($success-main, 0.12);
+    color: $success-dark;
+  }
+  
+  &--pending {
+    background: rgba($warning-main, 0.12);
+    color: $warning-dark;
+  }
+  
+  &--overdue {
+    background: rgba($error-main, 0.12);
+    color: $error-dark;
+  }
+  
+  &--draft {
+    background: rgba($grey-500, 0.12);
+    color: $grey-600;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Customer Info
+// -----------------------------------------------------------------------------
+.customerInfo {
+  @include flex-start;
+  gap: $spacing-1-5;
+}
+
+.customerAvatar {
+  @include avatar(40px);
+  background: $grey-200;
+  color: $text-secondary;
+}
+
+.customerName {
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+  @include text-truncate;
+  max-width: 200px;
+}
+
+.customerEmail {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  @include text-truncate;
+  max-width: 200px;
+}
+
+// -----------------------------------------------------------------------------
+// Empty State
+// -----------------------------------------------------------------------------
+.emptyState {
+  @include flex-column-center;
+  padding: $spacing-8;
+  text-align: center;
+}
+
+.emptyIcon {
+  @include size(80px);
+  @include flex-center;
+  border-radius: $radius-full;
+  background: $grey-100;
+  color: $text-disabled;
+  margin-bottom: $spacing-3;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  margin-bottom: $spacing-1;
+}
+
+.emptyDescription {
+  font-size: $font-size-md;
+  color: $text-secondary;
+  max-width: 300px;
+}
+
+// -----------------------------------------------------------------------------
+// Action Buttons
+// -----------------------------------------------------------------------------
+.actionButton {
+  @include button-reset;
+  @include size(36px);
+  @include flex-center;
+  border-radius: $radius-sm;
+  color: $text-secondary;
+  transition: all $transition-fast;
+  
+  &:hover {
+    background: $grey-200;
+    color: $text-primary;
+  }
+  
+  &--edit:hover {
+    background: rgba($info-main, 0.12);
+    color: $info-main;
+  }
+  
+  &--delete:hover {
+    background: rgba($error-main, 0.12);
+    color: $error-main;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Loading Skeleton
+// -----------------------------------------------------------------------------
+.skeleton {
+  @include skeleton;
+  
+  &--text {
+    height: 16px;
+    width: 100%;
+  }
+  
+  &--avatar {
+    @include size(40px);
+    border-radius: $radius-full;
+  }
+  
+  &--badge {
+    height: 24px;
+    width: 80px;
+  }
+}

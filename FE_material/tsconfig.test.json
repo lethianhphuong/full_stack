@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "/tmp/test-js",
+    "rootDir": ".",
+    "strict": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "esModuleInterop": true,
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts", "src/atoms/fields/shared/normalize-options.ts", "src/atoms/fields/shared/use-async-options.ts", "src/atoms/fields/shared/types.ts"]
+}

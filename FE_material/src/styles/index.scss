@@ -1,0 +1,60 @@
+// =============================================================================
+// STYLES INDEX - Entry point for shared styles
+// =============================================================================
+
+// Forward all partials for easy import
+@forward 'variables';
+@forward 'mixins';
+
+// =============================================================================
+// HOW TO USE IN MODULE FILES:
+// =============================================================================
+//
+// Option 1: Import everything
+// @use '@/styles' as *;
+//
+// Option 2: Import specific partials
+// @use '@/styles/variables' as *;
+// @use '@/styles/mixins' as *;
+//
+// Option 3: Use namespace
+// @use '@/styles/variables' as vars;
+// @use '@/styles/mixins' as mix;
+// .myClass { color: vars.$primary-main; @include mix.flex-center; }
+//
+// =============================================================================
+// EXAMPLE USAGE IN .module.scss FILE:
+// =============================================================================
+//
+// // MyComponent.module.scss
+// @use '@/styles/variables' as *;
+// @use '@/styles/mixins' as *;
+//
+// .wrapper {
+//   padding: $spacing-3;
+//   @include flex-column;
+//   
+//   // Override MUI component styles
+//   :global(.MuiCard-root) {
+//     border-radius: $radius-lg;
+//     box-shadow: $shadow-card;
+//   }
+//   
+//   // Responsive
+//   @include md {
+//     padding: $spacing-5;
+//   }
+// }
+//
+// .title {
+//   color: $text-primary;
+//   font-size: $font-size-2xl;
+//   font-weight: $font-weight-bold;
+//   @include text-truncate;
+// }
+//
+// .card {
+//   @include card-hover;
+// }
+//
+// =============================================================================
