@@ -56,6 +56,7 @@ const ICONS = {
   person: "solar:user-id-bold-duotone",
   pageContainer: "solar:layers-minimalistic-bold-duotone",
   searchableTable: "solar:table-bold-duotone",
+  router: "solar:tuning-2-bold-duotone",
 };
 
 // ----------------------------------------------------------------------
@@ -265,6 +266,13 @@ export const staticRoutesConfig: RouteSectionConfig[] = [
                 hideInMenu: true,
               },
             ],
+          },
+          {
+            id: "demo-router-management",
+            title: "Quản lý router",
+            path: "dashboard/demo-project/router-management",
+            icon: ICONS.router,
+            element: () => import("@/pages/demo-project/RouterManagementDemoPage"),
           },
         ],
       },
