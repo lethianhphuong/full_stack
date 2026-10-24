@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { WheelEvent } from 'react';
 import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
@@ -8,14 +9,12 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import { CustomDialog, Iconify } from '@/components';
 import { createIconOption, ICON_OPTIONS, type IconOption } from './icon-options';
 
 type ViewMode = 'large' | 'compact' | 'list';
 
 const ICONS_PER_BATCH = 20;
-const ICON_LIBRARY_HEIGHT = { xs: 360, sm: 500 };
 
 type Props = {
   open: boolean;
@@ -28,13 +27,14 @@ function normalizeSearch(value: string) {
   return value.toLowerCase().replace(/[-_:]/g, ' ');
 }
 
-function IconCard({ option, mode, selected, onSelect }: { option: IconOption; mode: ViewMode; selected: boolean; onSelect: () => void }) {
+function IconCard({ option, mode, selected, onSelect, onDoubleClick }: { option: IconOption; mode: ViewMode; selected: boolean; onSelect: () => void; onDoubleClick: () => void }) {
   if (mode === 'list') {
     return (
       <Box
         component="button"
         type="button"
         onClick={onSelect}
+        onDoubleClick={onDoubleClick}
         sx={(theme) => ({
           display: 'flex', width: '100%', alignItems: 'center', gap: 1.5, p: 1,
           textAlign: 'left', color: 'text.primary', bgcolor: selected ? 'action.selected' : 'transparent',
@@ -57,6 +57,7 @@ function IconCard({ option, mode, selected, onSelect }: { option: IconOption; mo
         component="button"
         type="button"
         onClick={onSelect}
+        onDoubleClick={onDoubleClick}
         sx={(theme) => ({
           minWidth: 0, minHeight: mode === 'large' ? 96 : 72, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: 0.75, p: 1, color: selected ? 'primary.main' : 'text.secondary',
@@ -107,9 +108,27 @@ export default function RouterIconLibraryDialog({ open, value, onClose, onSelect
     const isNearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 96;
     if (isNearBottom) setLoadedCount((current) => Math.min(current + ICONS_PER_BATCH, options.length));
   };
+  const handleIconListWheel = (event: WheelEvent<HTMLDivElement>) => {
+    const container = scrollContainerRef.current;
+    if (!container || !hasMoreOptions || event.deltaY <= 0 || container.scrollHeight > container.clientHeight) return;
+    setLoadedCount((current) => Math.min(current + ICONS_PER_BATCH, options.length));
+  };
 
-  const commitSelection = () => {
-    onSelect(draftValue);
+  useEffect(() => {
+    if (!open || !hasMoreOptions) return undefined;
+
+    const frame = requestAnimationFrame(() => {
+      const container = scrollContainerRef.current;
+      if (container && container.scrollHeight <= container.clientHeight + 1) {
+        setLoadedCount((current) => Math.min(current + ICONS_PER_BATCH, options.length));
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [open, hasMoreOptions, loadedCount, options.length, mode]);
+
+  const commitSelection = (selectedValue: string) => {
+    onSelect(selectedValue);
     onClose();
   };
 
@@ -126,12 +145,16 @@ export default function RouterIconLibraryDialog({ open, value, onClose, onSelect
           sx: {
             height: { xs: 'calc(100dvh - 24px)', sm: 760 },
             maxHeight: 'calc(100dvh - 24px)',
+            '& > .MuiDialogContent-root': {
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            },
           },
         },
       }}
-      actions={<><Button onClick={onClose}>Hủy</Button><Button variant="contained" onClick={commitSelection} disabled={!draftValue}>Chọn icon</Button></>}
     >
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2, flexShrink: 0 }}>
           <TextField
             fullWidth
             autoFocus
@@ -154,9 +177,10 @@ export default function RouterIconLibraryDialog({ open, value, onClose, onSelect
         <Box
           ref={scrollContainerRef}
           onScroll={handleIconListScroll}
+          onWheel={handleIconListWheel}
           role="region"
           aria-label="Danh sách icon"
-          sx={{ height: ICON_LIBRARY_HEIGHT, overflowY: 'auto', overscrollBehavior: 'contain', pr: 0.5 }}
+          sx={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable', pr: 0.5 }}
         >
           {options.length === 0 ? (
             <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', color: 'text.secondary' }}>
@@ -167,7 +191,7 @@ export default function RouterIconLibraryDialog({ open, value, onClose, onSelect
           ) : (
             <>
               <Box sx={mode === 'list' ? { display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 0.5 } : { display: 'grid', gridTemplateColumns: mode === 'large' ? { xs: 'repeat(3, 1fr)', sm: 'repeat(5, 1fr)', md: 'repeat(7, 1fr)' } : { xs: 'repeat(4, 1fr)', sm: 'repeat(7, 1fr)', md: 'repeat(10, 1fr)' }, gap: 1 }}>
-                {visibleOptions.map((option) => <IconCard key={option.value} option={option} mode={mode} selected={draftValue === option.value} onSelect={() => setDraftValue(option.value)} />)}
+                {visibleOptions.map((option) => <IconCard key={option.value} option={option} mode={mode} selected={draftValue === option.value} onSelect={() => setDraftValue(option.value)} onDoubleClick={() => commitSelection(option.value)} />)}
               </Box>
               {hasMoreOptions && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', py: 2, textAlign: 'center' }}>Cuộn xuống để tải thêm icon…</Typography>}
             </>

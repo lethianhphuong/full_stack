@@ -22,6 +22,9 @@ function toRouteConfig(values: RouteEditorValues): Partial<ManagedRoute> {
 
 export default function RouterManagementView() {
   const { enqueueSnackbar } = useSnackbar();
+  const addSection = useManagedRouterStore((state) => state.addSection);
+  const renameSection = useManagedRouterStore((state) => state.renameSection);
+  const moveSection = useManagedRouterStore((state) => state.moveSection);
   const addRoute = useManagedRouterStore((state) => state.addRoute);
   const updateRoute = useManagedRouterStore((state) => state.updateRoute);
   const moveRoute = useManagedRouterStore((state) => state.moveRoute);
@@ -44,6 +47,9 @@ export default function RouterManagementView() {
   const openEdit = (item: RouterRowItem) => { setSuggestedParent(undefined); setEditingItem(item); setEditorOpen(true); };
   const handleSave = (values: RouteEditorValues) => {
     const route = toRouteConfig(values);
+    if (values.newSectionName) {
+      addSection(values.newSectionName);
+    }
     if (editingItem) {
       updateRoute(editingItem.id, route);
       if (values.section !== editingItem.sectionTitle || (values.parentId || '') !== (editingItem.parentId || '')) {
@@ -60,7 +66,40 @@ export default function RouterManagementView() {
     <AppPageContainer sx={{ p: { xs: 2, md: 3 } }} hideTitle>
       <Card sx={{ borderRadius: 2, boxShadow: (theme) => theme.customShadows.card, border: (theme) => `1px solid ${theme.palette.divider}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <RouterToolbar filters={filters} sections={sections} onSearchChange={handleSearchChange} onSubheaderChange={handleSubheaderChange} onReset={resetFilters} onAdd={() => openAdd()} onResetConfig={() => setResetOpen(true)} />
-        <RouterTreeTable sections={filteredSections} collapsedMap={collapsedMap} onToggleCollapse={toggleCollapse} onAddChild={openAdd} onEdit={openEdit} onMove={setMovingItem} onMoveSibling={(item, offset) => { moveRouteSibling(item.id, offset); enqueueSnackbar('Đã thay đổi thứ tự route', { variant: 'success' }); }} onDelete={setDeletingItem} />
+        <RouterTreeTable
+          sections={filteredSections}
+          collapsedMap={collapsedMap}
+          onToggleCollapse={toggleCollapse}
+          onAddChild={openAdd}
+          onEdit={openEdit}
+          onMove={setMovingItem}
+          onMoveSibling={(item, offset) => {
+            const success = moveRouteSibling(item.id, offset);
+            if (success) {
+              enqueueSnackbar('Đã thay đổi thứ tự route', { variant: 'success' });
+            } else {
+              enqueueSnackbar('Route đã ở vị trí giới hạn', { variant: 'info' });
+            }
+          }}
+          onMoveSection={(sectionTitle, offset) => {
+            const success = moveSection(sectionTitle, offset);
+            if (success) {
+              enqueueSnackbar(`Đã di chuyển nhóm “${sectionTitle}”`, { variant: 'success' });
+            }
+          }}
+          onRenameSection={(oldTitle, newTitle) => {
+            const success = renameSection(oldTitle, newTitle);
+            if (success) {
+              enqueueSnackbar(`Đã đổi tên nhóm thành “${newTitle}”`, { variant: 'success' });
+            }
+            return success;
+          }}
+          onSaveInlineRow={(id, updates) => {
+            updateRoute(id, updates);
+            enqueueSnackbar('Đã cập nhật route', { variant: 'success' });
+          }}
+          onDelete={setDeletingItem}
+        />
         <RouterStatusBar totalEntries={totalEntries} totalConfiguredEntries={totalConfiguredEntries} />
       </Card>
 

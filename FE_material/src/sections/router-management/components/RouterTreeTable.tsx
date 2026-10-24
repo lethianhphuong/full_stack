@@ -10,7 +10,7 @@ import { useTheme } from '@mui/material/styles';
 import Scrollbar from '@/components/scrollbar';
 import RouterSubheaderBanner from './RouterSubheaderBanner';
 import RouterTreeRow from './RouterTreeRow';
-import type { RouterRowItem, SubheaderSection } from '../types';
+import type { ManagedRoute, RouterRowItem, SubheaderSection } from '../types';
 
 interface RouterTreeTableProps {
   sections: SubheaderSection[];
@@ -21,6 +21,9 @@ interface RouterTreeTableProps {
   onMove: (item: RouterRowItem) => void;
   onMoveSibling: (item: RouterRowItem, offset: -1 | 1) => void;
   onDelete: (item: RouterRowItem) => void;
+  onMoveSection?: (sectionTitle: string, offset: -1 | 1) => void;
+  onRenameSection?: (oldTitle: string, newTitle: string) => boolean | void;
+  onSaveInlineRow?: (id: string, updates: Partial<ManagedRoute>) => boolean | void;
 }
 
 export default function RouterTreeTable({
@@ -32,8 +35,24 @@ export default function RouterTreeTable({
   onMove,
   onMoveSibling,
   onDelete,
+  onMoveSection,
+  onRenameSection,
+  onSaveInlineRow,
 }: RouterTreeTableProps) {
   const theme = useTheme();
+  const allSubheaderTitles = React.useMemo(() => sections.map((s) => s.title), [sections]);
+
+  const existingPaths = React.useMemo(() => {
+    const paths = new Set<string>();
+    const collect = (items: RouterRowItem[]) => {
+      items.forEach((item) => {
+        paths.add(item.path.replace(/^\/+/, ''));
+        if (item.children) collect(item.children);
+      });
+    };
+    sections.forEach((s) => collect(s.items));
+    return paths;
+  }, [sections]);
 
   // Recursive render for row and its children
   const renderItemAndChildren = (item: RouterRowItem): React.ReactNode => {
@@ -44,12 +63,14 @@ export default function RouterTreeTable({
         <RouterTreeRow
           item={item}
           isCollapsed={isCollapsed}
+          existingPaths={existingPaths}
           onToggleCollapse={onToggleCollapse}
           onAddChild={onAddChild}
           onEdit={onEdit}
           onMove={onMove}
           onMoveSibling={onMoveSibling}
           onDelete={onDelete}
+          onSaveInline={onSaveInlineRow}
         />
         {!isCollapsed &&
           item.children &&
@@ -94,9 +115,18 @@ export default function RouterTreeTable({
               </TableCell>
             </TableRow>
           ) : (
-            sections.map((section) => (
+            sections.map((section, sIdx) => (
               <React.Fragment key={section.id}>
-                <RouterSubheaderBanner section={section} colSpan={5} />
+                <RouterSubheaderBanner
+                  section={section}
+                  colSpan={5}
+                  canMoveUp={sIdx > 0}
+                  canMoveDown={sIdx < sections.length - 1}
+                  existingTitles={allSubheaderTitles}
+                  onMoveUp={() => onMoveSection?.(section.title, -1)}
+                  onMoveDown={() => onMoveSection?.(section.title, 1)}
+                  onRename={onRenameSection}
+                />
                 {section.items.map((item) => renderItemAndChildren(item))}
               </React.Fragment>
             ))

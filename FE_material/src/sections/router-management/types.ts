@@ -46,4 +46,5 @@ export type RouteEditorValues = {
   info: string;
   index: boolean;
   hideInMenu: boolean;
+  newSectionName?: string;
 };

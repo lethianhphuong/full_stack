@@ -21,6 +21,17 @@ export function findRoute(config: ManagedRouteSection[], id: string): ManagedRou
   return undefined;
 }
 
+export function findRouteWithSection(
+  config: ManagedRouteSection[],
+  id: string
+): { route: ManagedRoute; sectionTitle: string } | undefined {
+  for (const section of config) {
+    const route = findRoute([section], id);
+    if (route) return { route, sectionTitle: section.subheader };
+  }
+  return undefined;
+}
+
 export function collectDescendantIds(route: ManagedRoute) {
   const ids = new Set<string>();
   const visit = (items?: ManagedRoute[]) => items?.forEach((item) => { ids.add(item.id); visit(item.children); });
@@ -28,9 +39,37 @@ export function collectDescendantIds(route: ManagedRoute) {
   return ids;
 }
 
+export function addSection(config: ManagedRouteSection[], subheader: string): ManagedRouteSection[] {
+  const trimmed = subheader.trim();
+  if (!trimmed || config.some((s) => s.subheader === trimmed)) return config;
+  const next = cloneConfig(config);
+  next.push({ subheader: trimmed, items: [] });
+  return next;
+}
+
+export function renameSection(
+  config: ManagedRouteSection[],
+  oldSubheader: string,
+  newSubheader: string
+): ManagedRouteSection[] {
+  const trimmed = newSubheader.trim();
+  if (!trimmed || trimmed === oldSubheader) return config;
+  if (config.some((s) => s.subheader.toLowerCase() === trimmed.toLowerCase() && s.subheader !== oldSubheader)) {
+    return config;
+  }
+  const next = cloneConfig(config);
+  const target = next.find((s) => s.subheader === oldSubheader);
+  if (!target) return config;
+  target.subheader = trimmed;
+  return next;
+}
+
 function targetItems(config: ManagedRouteSection[], destination: RouteDestination) {
-  const section = config.find((item) => item.subheader === destination.section);
-  if (!section) return undefined;
+  let section = config.find((item) => item.subheader === destination.section);
+  if (!section) {
+    section = { subheader: destination.section, items: [] };
+    config.push(section);
+  }
   if (!destination.parentId) return section.items;
   const parent = findRoute(config, destination.parentId);
   if (!parent) return undefined;
@@ -93,17 +132,68 @@ export function deleteRoute(config: ManagedRouteSection[], id: string) {
   return next.some((section) => Boolean(remove(section.items, id))) ? next : config;
 }
 
-export function moveRouteSibling(config: ManagedRouteSection[], id: string, offset: -1 | 1) {
+export function moveSection(config: ManagedRouteSection[], subheader: string, offset: -1 | 1): ManagedRouteSection[] {
+  const index = config.findIndex((s) => s.subheader === subheader);
+  if (index < 0) return config;
+  const target = index + offset;
+  if (target < 0 || target >= config.length) return config;
   const next = cloneConfig(config);
-  const visit = (items: ManagedRoute[]): boolean => {
-    const index = items.findIndex((item) => item.id === id);
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+}
+
+export function moveRouteSibling(config: ManagedRouteSection[], id: string, offset: -1 | 1): ManagedRouteSection[] {
+  const next = cloneConfig(config);
+
+  // 1. Kiểm tra nếu id là route cấp gốc của bất kỳ section nào
+  for (let sIdx = 0; sIdx < next.length; sIdx++) {
+    const section = next[sIdx];
+    const index = section.items.findIndex((item) => item.id === id);
     if (index >= 0) {
       const target = index + offset;
-      if (target < 0 || target >= items.length) return false;
-      [items[index], items[target]] = [items[target], items[index]];
-      return true;
+      if (target >= 0 && target < section.items.length) {
+        // Đổi chỗ trong cùng section
+        [section.items[index], section.items[target]] = [section.items[target], section.items[index]];
+        return next;
+      }
+      // Nếu ở đầu section và di chuyển lên -> chuyển sang cuối section phía trên
+      if (target < 0 && sIdx > 0) {
+        const [removed] = section.items.splice(index, 1);
+        next[sIdx - 1].items.push(removed);
+        return next;
+      }
+      // Nếu ở cuối section và di chuyển xuống -> chuyển sang đầu section phía dưới
+      if (target >= section.items.length && sIdx < next.length - 1) {
+        const [removed] = section.items.splice(index, 1);
+        next[sIdx + 1].items.unshift(removed);
+        return next;
+      }
+      return config; // Đã ở đỉnh/đáy tuyệt đối
     }
-    return items.some((item) => item.children ? visit(item.children) : false);
+  }
+
+  // 2. Nếu là route con, hoán đổi trong danh sách anh-em của cha
+  const visitNested = (items: ManagedRoute[]): boolean => {
+    for (const item of items) {
+      if (item.children) {
+        const cIdx = item.children.findIndex((c) => c.id === id);
+        if (cIdx >= 0) {
+          const target = cIdx + offset;
+          if (target >= 0 && target < item.children.length) {
+            [item.children[cIdx], item.children[target]] = [item.children[target], item.children[cIdx]];
+            return true;
+          }
+          return false;
+        }
+        if (visitNested(item.children)) return true;
+      }
+    }
+    return false;
   };
-  return next.some((section) => visit(section.items)) ? next : config;
+
+  for (const section of next) {
+    if (visitNested(section.items)) return next;
+  }
+
+  return config;
 }

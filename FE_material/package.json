@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:icon-catalog": "node scripts/generate-icon-catalog.mjs",
+    "predev": "npm run generate:icon-catalog",
+    "prebuild": "npm run generate:icon-catalog",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -14,6 +17,11 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
+    "@iconify-json/ant-design": "^1.2.9",
+    "@iconify-json/eva": "^1.2.3",
+    "@iconify-json/iconamoon": "^1.2.2",
+    "@iconify-json/mingcute": "^1.2.8",
+    "@iconify-json/solar": "^1.2.13",
     "@iconify/react": "^6.0.2",
     "@mui/icons-material": "^7.3.9",
     "@mui/lab": "^7.0.1-beta.23",
