@@ -9,7 +9,7 @@ export type ManagedRoute = {
   info?: string | number;
 };
 
-export type ManagedRouteSection = { subheader: string; items: ManagedRoute[] };
+export type ManagedRouteSection = { subheader?: string; items: ManagedRoute[] };
 export type RouteDestination = { section: string; parentId?: string; index?: number };
 
 export type RouterRowItem = Omit<ManagedRoute, 'children'> & {
@@ -38,13 +38,14 @@ export type FilterState = {
 };
 
 export type RouteEditorValues = {
-  title: string;
-  path: string;
-  section: string;
-  parentId: string;
-  icon: string;
-  info: string;
-  index: boolean;
-  hideInMenu: boolean;
+  title?: string;
+  path?: string;
+  section?: string;
+  parentId?: string;
+  icon?: string;
+  info?: string;
+  index?: boolean;
+  hideInMenu?: boolean;
   newSectionName?: string;
+  isOnlyCreateGroup?: boolean;
 };

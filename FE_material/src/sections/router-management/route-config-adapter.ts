@@ -2,8 +2,8 @@ import type { ManagedRoute, ManagedRouteSection, RouterRowItem, SubheaderSection
 
 const DEFAULT_ROUTE_ICON = 'solar:route-bold-duotone';
 
-function slugify(value: string, index: number) {
-  const slug = value
+function slugify(value: string | undefined, index: number) {
+  const slug = (value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -56,13 +56,14 @@ function mapRoutes(
 
 export function buildRouterSections(config: ManagedRouteSection[]): SubheaderSection[] {
   return config.map((section, index) => {
+    const title = section.subheader || '';
     const id = slugify(section.subheader, index);
 
     return {
       id,
-      title: section.subheader,
+      title,
       routeCount: countRoutes(section.items),
-      items: mapRoutes(section.items, id, section.subheader),
+      items: mapRoutes(section.items, id, title),
     };
   });
 }

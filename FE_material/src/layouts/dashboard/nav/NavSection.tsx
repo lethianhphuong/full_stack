@@ -13,24 +13,26 @@ type NavSectionProps = {
 export default function NavSection({ data }: NavSectionProps) {
   return (
     <Stack spacing={3} sx={{ px: 2 }}>
-      {data.map((section) => (
-        <Box key={section.subheader}>
-          <Box
-            component="span"
-            sx={{
-              display: "block",
-              color: "text.disabled",
-              typography: "overline",
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: 1.1,
-              px: 1.5,
-              mb: 1,
-            }}
-          >
-            {section.subheader}
-          </Box>
+      {data.map((section, index) => (
+        <Box key={section.subheader || section.items[0]?.path || `section-${index}`}>
+          {Boolean(section.subheader) && (
+            <Box
+              component="span"
+              sx={{
+                display: "block",
+                color: "text.disabled",
+                typography: "overline",
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: 1.1,
+                px: 1.5,
+                mb: 1,
+              }}
+            >
+              {section.subheader}
+            </Box>
+          )}
           <List disablePadding>
             {section.items.map((item) => (
               <NavItemBase key={item.title} item={item} variant="vertical" />

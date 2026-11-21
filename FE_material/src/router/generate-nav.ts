@@ -13,7 +13,7 @@ export type NavItemConfig = {
 };
 
 export type NavSectionConfig = {
-  subheader: string;
+  subheader?: string;
   items: NavItemConfig[];
 };
 

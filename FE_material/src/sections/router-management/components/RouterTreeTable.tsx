@@ -6,7 +6,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Scrollbar from '@/components/scrollbar';
 import RouterSubheaderBanner from './RouterSubheaderBanner';
 import RouterTreeRow from './RouterTreeRow';
@@ -23,10 +23,11 @@ interface RouterTreeTableProps {
   onDelete: (item: RouterRowItem) => void;
   onMoveSection?: (sectionTitle: string, offset: -1 | 1) => void;
   onRenameSection?: (oldTitle: string, newTitle: string) => boolean | void;
+  onDeleteSection?: (sectionTitle: string) => void;
   onSaveInlineRow?: (id: string, updates: Partial<ManagedRoute>) => boolean | void;
 }
 
-export default function RouterTreeTable({
+export default React.memo(function RouterTreeTable({
   sections,
   collapsedMap,
   onToggleCollapse,
@@ -37,6 +38,7 @@ export default function RouterTreeTable({
   onDelete,
   onMoveSection,
   onRenameSection,
+  onDeleteSection,
   onSaveInlineRow,
 }: RouterTreeTableProps) {
   const theme = useTheme();
@@ -115,24 +117,52 @@ export default function RouterTreeTable({
               </TableCell>
             </TableRow>
           ) : (
-            sections.map((section, sIdx) => (
-              <React.Fragment key={section.id}>
-                <RouterSubheaderBanner
-                  section={section}
-                  colSpan={5}
-                  canMoveUp={sIdx > 0}
-                  canMoveDown={sIdx < sections.length - 1}
-                  existingTitles={allSubheaderTitles}
-                  onMoveUp={() => onMoveSection?.(section.title, -1)}
-                  onMoveDown={() => onMoveSection?.(section.title, 1)}
-                  onRename={onRenameSection}
-                />
-                {section.items.map((item) => renderItemAndChildren(item))}
-              </React.Fragment>
-            ))
+            sections.map((section, sIdx) => {
+              const isSectionCollapsed = Boolean(collapsedMap[section.id]);
+              return (
+                <React.Fragment key={section.id}>
+                  <RouterSubheaderBanner
+                    section={section}
+                    colSpan={5}
+                    canMoveUp={sIdx > 0}
+                    canMoveDown={sIdx < sections.length - 1}
+                    isCollapsed={isSectionCollapsed}
+                    existingTitles={allSubheaderTitles}
+                    onMoveUp={() => onMoveSection?.(section.title, -1)}
+                    onMoveDown={() => onMoveSection?.(section.title, 1)}
+                    onRename={onRenameSection}
+                    onDelete={onDeleteSection}
+                    onToggleCollapse={() => onToggleCollapse(section.id)}
+                  />
+                  {!isSectionCollapsed && (
+                    section.items.length === 0 ? (
+                      Boolean(section.title) && (
+                        <TableRow sx={{ '&:hover': { bgcolor: 'transparent' } }}>
+                          <TableCell
+                            colSpan={5}
+                            sx={{
+                              py: 2,
+                              px: 3,
+                              color: 'text.secondary',
+                              fontStyle: 'italic',
+                              fontSize: 13,
+                              bgcolor: alpha(theme.palette.grey[500], 0.04),
+                            }}
+                          >
+                            Nhóm menu này chưa có mục nào. Bạn có thể thêm hoặc di chuyển menu con vào đây.
+                          </TableCell>
+                        </TableRow>
+                      )
+                    ) : (
+                      section.items.map((item) => renderItemAndChildren(item))
+                    )
+                  )}
+                </React.Fragment>
+              );
+            })
           )}
         </TableBody>
       </Table>
     </TableContainer>
   );
-}
+});

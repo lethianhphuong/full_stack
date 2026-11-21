@@ -28,9 +28,10 @@ function flattenLocationOptions(config: ManagedRouteSection[], excluded: Set<str
   const result: LocationOption[] = [];
 
   config.forEach((section) => {
+    const sectionLabel = section.subheader || '';
     result.push({
-      value: `section:${section.subheader}`,
-      label: section.subheader,
+      value: `section:${section.subheader ?? ''}`,
+      label: sectionLabel,
       depth: 0,
       isSection: true,
     });
@@ -102,12 +103,12 @@ export default function RouterMoveDialog({ open, item, config, onClose, onMove }
     if (resolvedTarget.parentId) {
       return (resolvedTarget.parentRoute?.children ?? []).filter((route) => route.id !== item?.id);
     }
-    const targetSection = config.find((s) => s.subheader === resolvedTarget.section);
+    const targetSection = config.find((s) => (s.subheader || '') === resolvedTarget.section);
     return (targetSection?.items ?? []).filter((route) => route.id !== item?.id);
   }, [config, item?.id, resolvedTarget]);
 
   const handleConfirmMove = () => {
-    if (!resolvedTarget.section) return;
+    if (resolvedTarget.section === undefined) return;
     onMove({
       section: resolvedTarget.section,
       parentId: resolvedTarget.parentId || undefined,
@@ -147,7 +148,7 @@ export default function RouterMoveDialog({ open, item, config, onClose, onMove }
             renderValue: (selectedVal) => {
               const opt = locationOptions.find((o) => o.value === selectedVal);
               if (!opt) return '';
-              if (opt.isSection) return `${opt.label} (Cấp gốc nhóm)`;
+              if (opt.isSection) return opt.label ? `${opt.label} (Cấp gốc nhóm)` : 'Mục gốc';
               return opt.label;
             },
           }}
@@ -165,7 +166,7 @@ export default function RouterMoveDialog({ open, item, config, onClose, onMove }
                     alignItems: 'center',
                   }}
                 >
-                  <span>{opt.label}</span>
+                  <span>{opt.label || 'Mục gốc'}</span>
                   <Typography
                     variant="caption"
                     sx={{ color: 'text.secondary', fontWeight: 400, fontStyle: 'italic', ml: 1 }}
@@ -175,7 +176,7 @@ export default function RouterMoveDialog({ open, item, config, onClose, onMove }
                 </Box>
               ) : (
                 <Box sx={{ pl: opt.depth * 1.5, display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <span>{opt.label}</span>
+                  <span>{opt.label || 'Mục gốc'}</span>
                 </Box>
               )}
             </MenuItem>

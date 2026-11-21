@@ -63,7 +63,7 @@ function mergeConfigs(
   }));
 
   for (const apiSection of apiConfig) {
-    const existingSection = merged.find(s => s.subheader === apiSection.subheader);
+    const existingSection = merged.find(s => (s.subheader || '') === (apiSection.subheader || ''));
 
     if (existingSection) {
       // Thêm items vào section đã có (tránh duplicate theo id)

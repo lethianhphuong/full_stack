@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
@@ -16,22 +16,32 @@ interface RouterSubheaderBannerProps {
   colSpan?: number;
   canMoveUp?: boolean;
   canMoveDown?: boolean;
+  isCollapsed?: boolean;
   existingTitles?: string[];
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onRename?: (oldTitle: string, newTitle: string) => boolean | void;
+  onDelete?: (sectionTitle: string) => void;
+  onToggleCollapse?: () => void;
 }
 
-export default function RouterSubheaderBanner({
+export default React.memo(function RouterSubheaderBanner({
   section,
   colSpan = 8,
   canMoveUp = false,
   canMoveDown = false,
+  isCollapsed = false,
   existingTitles = [],
   onMoveUp,
   onMoveDown,
   onRename,
+  onDelete,
+  onToggleCollapse,
 }: RouterSubheaderBannerProps) {
+  if (!section.title) {
+    return null;
+  }
+
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(section.title);
@@ -133,6 +143,25 @@ export default function RouterSubheaderBanner({
             </Stack>
           ) : (
             <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+              {onToggleCollapse && (
+                <Tooltip title={isCollapsed ? 'Mở rộng nhóm' : 'Thu gọn nhóm'}>
+                  <IconButton
+                    size="small"
+                    onClick={onToggleCollapse}
+                    aria-label={isCollapsed ? `Mở rộng nhóm ${section.title}` : `Thu gọn nhóm ${section.title}`}
+                    sx={{
+                      p: 0.25,
+                      color: 'success.dark',
+                      '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.12) },
+                    }}
+                  >
+                    <Iconify
+                      icon={isCollapsed ? 'solar:alt-arrow-right-bold' : 'solar:alt-arrow-down-bold'}
+                      width={18}
+                    />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Iconify
                 icon="solar:bookmark-opened-bold"
                 width={18}
@@ -140,11 +169,14 @@ export default function RouterSubheaderBanner({
               />
               <Typography
                 variant="subtitle2"
+                onClick={onToggleCollapse}
                 sx={{
                   fontWeight: 700,
                   color: 'success.dark',
                   fontSize: 12.5,
                   letterSpacing: 0.5,
+                  cursor: onToggleCollapse ? 'pointer' : 'default',
+                  userSelect: 'none',
                 }}
               >
                 SUBHEADER: {section.title}
@@ -211,9 +243,29 @@ export default function RouterSubheaderBanner({
                 </IconButton>
               </span>
             </Tooltip>
+            {onDelete && (
+              <Tooltip title="Xóa nhóm menu">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => onDelete(section.title)}
+                  aria-label={`Xóa nhóm ${section.title}`}
+                  sx={{
+                    p: 0.5,
+                    opacity: 0.8,
+                    '&:hover': {
+                      opacity: 1,
+                      bgcolor: alpha(theme.palette.error.main, 0.12),
+                    },
+                  }}
+                >
+                  <Iconify icon="solar:trash-bin-trash-bold" width={17} />
+                </IconButton>
+              </Tooltip>
+            )}
           </Stack>
         </Stack>
       </TableCell>
     </TableRow>
   );
-}
+});

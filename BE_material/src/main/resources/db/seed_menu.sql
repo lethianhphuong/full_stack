@@ -1,0 +1,43 @@
+-- Seed menu từ FE_material/src/sections/router-management/mock-routes.ts (MySQL)
+-- id item giữ nguyên UUID trong mock; id section tự đặt dạng 10000000-...-00000000000N
+-- sort_order của item đánh liên tục toàn bảng theo thứ tự duyệt cây (giống maxSortOrder()+1 trong MenuServiceImpl)
+USE material_db;
+SET NAMES utf8mb4;
+START TRANSACTION;
+
+INSERT INTO tbl_menu_sections (id, title, sort_order, is_active, is_deleted, created_at, updated_at) VALUES
+  ('10000000-0000-4000-8000-000000000001', '', 1, TRUE, FALSE, NOW(6), NOW(6)),
+  ('10000000-0000-4000-8000-000000000002', 'Tổng quan', 2, TRUE, FALSE, NOW(6), NOW(6)),
+  ('10000000-0000-4000-8000-000000000003', 'Quản lý', 3, TRUE, FALSE, NOW(6), NOW(6)),
+  ('10000000-0000-4000-8000-000000000004', 'Tiện ích', 4, TRUE, FALSE, NOW(6), NOW(6)),
+  ('10000000-0000-4000-8000-000000000005', 'Components', 5, TRUE, FALSE, NOW(6), NOW(6)),
+  ('10000000-0000-4000-8000-000000000006', 'DEMO PROJECT', 6, TRUE, FALSE, NOW(6), NOW(6));
+
+INSERT INTO tbl_menu_items (id, section_id, parent_id, title, path, icon, sort_order, is_index, is_hidden, is_active, is_deleted, created_at, updated_at) VALUES
+  ('00000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', NULL, 'Trang chủ', 'trang-chu', 'solar:widget-5-bold-duotone', 1, TRUE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', NULL, 'Phân tích', 'analytics', 'solar:chart-square-bold-duotone', 2, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000003', NULL, 'Người dùng', 'user', 'solar:users-group-rounded-bold-duotone', 3, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Hồ sơ', 'user/profile', NULL, 4, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Thẻ', 'user/cards', NULL, 5, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000006', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Danh sách', 'user/list', NULL, 6, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000007', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Tạo mới', 'user/create', NULL, 7, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000008', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Chỉnh sửa', 'user/edit', NULL, 8, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000003', 'Tài khoản', 'user/account', NULL, 9, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000010', '10000000-0000-4000-8000-000000000003', NULL, 'Hóa đơn chi tiêu cần thanh toán', 'invoice', 'solar:bill-list-bold-duotone', 10, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000011', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000010', 'Danh sách chờ thanh toán', 'invoice/list', NULL, 11, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000012', '10000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000011', 'Chi tiết', 'invoice/list/details', NULL, 12, FALSE, TRUE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000013', '10000000-0000-4000-8000-000000000004', NULL, 'Thư', 'mail', 'solar:letter-bold-duotone', 13, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000014', '10000000-0000-4000-8000-000000000004', NULL, 'Trò chuyện', 'chat', 'solar:chat-round-dots-bold-duotone', 14, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000015', '10000000-0000-4000-8000-000000000004', NULL, 'Lịch', 'calendar', 'solar:calendar-date-bold-duotone', 15, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000017', '10000000-0000-4000-8000-000000000005', NULL, 'Data Table', 'components/data-table', 'solar:table-bold-duotone', 16, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000018', '10000000-0000-4000-8000-000000000005', NULL, 'Form Fields', 'components/form-fields', 'solar:code-square-bold-duotone', 17, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000019', '10000000-0000-4000-8000-000000000005', NULL, 'OnlyOffice Editor', 'components/onlyoffice-editor', 'solar:document-text-bold-duotone', 18, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000020', '10000000-0000-4000-8000-000000000006', NULL, 'DEMO PROJECT', 'dashboard/demo-project', 'solar:case-minimalistic-bold-duotone', 19, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000021', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000020', 'AppPageContainer Demo', 'dashboard/demo-project/app-page-container', 'solar:layers-minimalistic-bold-duotone', 20, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000022', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000020', 'SearchableProTable Demo', 'dashboard/demo-project/searchable-pro-table', 'solar:table-bold-duotone', 21, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000023', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000020', 'Con Người', 'dashboard/demo-project/con-nguoi', 'solar:user-id-bold-duotone', 22, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000024', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000023', 'Thêm mới Con Người', 'dashboard/demo-project/con-nguoi/create', NULL, 23, FALSE, TRUE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000025', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000023', 'Chỉnh sửa Con Người', 'dashboard/demo-project/con-nguoi/:id/edit', NULL, 24, FALSE, TRUE, TRUE, FALSE, NOW(6), NOW(6)),
+  ('00000000-0000-4000-8000-000000000026', '10000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000020', 'Quản lý router', 'dashboard/demo-project/router-management', 'solar:tuning-2-bold-duotone', 25, FALSE, FALSE, TRUE, FALSE, NOW(6), NOW(6));
+
+COMMIT;

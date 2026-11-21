@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useManagedRouterStore } from '../store';
 import { buildRouterSections } from '../route-config-adapter';
 import type { FilterState, RouterRowItem } from '../types';
@@ -20,28 +20,28 @@ export function useRouterTreeTable() {
 
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
 
-  const toggleCollapse = (id: string) => {
+  const toggleCollapse = useCallback((id: string) => {
     setCollapsedMap((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
-  };
+  }, []);
 
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilters({
       search: '',
       subheader: 'all',
     });
     setCollapsedMap({});
-  };
+  }, []);
 
-  const handleSearchChange = (val: string) => {
+  const handleSearchChange = useCallback((val: string) => {
     setFilters((prev) => ({ ...prev, search: val }));
-  };
+  }, []);
 
-  const handleSubheaderChange = (val: string) => {
+  const handleSubheaderChange = useCallback((val: string) => {
     setFilters((prev) => ({ ...prev, subheader: val }));
-  };
+  }, []);
 
   // Helper filter function for a single item
   const itemMatches = (item: RouterRowItem, searchLower: string) => {
@@ -93,7 +93,11 @@ export function useRouterTreeTable() {
           items: matchingItems,
         };
       })
-      .filter((section) => section.items.length > 0);
+      .filter((section) => {
+        if (!section.title && section.items.length === 0) return false;
+        if (!searchLower) return true;
+        return section.items.length > 0 || section.title.toLowerCase().includes(searchLower);
+      });
   }, [filters, sections]);
 
   // Total visible route entries

@@ -35,11 +35,11 @@ const DEFAULT_VALUES: FormValues = {
 };
 
 const schema: yup.ObjectSchema<FormValues> = yup.object({
-  title: yup.string().trim().required('Nhập tiêu đề'),
-  path: yup.string().trim().required('Nhập đường dẫn'),
+  title: yup.string().trim().defined(),
+  path: yup.string().trim().defined(),
   location: yup.string().required('Chọn vị trí menu'),
   newSectionName: yup.string().defined(),
-  icon: yup.string().trim().required('Chọn icon'),
+  icon: yup.string().trim().defined(),
   info: yup.string().defined(),
   index: yup.boolean().defined(),
   hideInMenu: yup.boolean().defined(),
@@ -58,9 +58,10 @@ function flattenLocationOptions(config: ManagedRouteSection[], excludedIds: Set<
   const result: Array<{ value: string; label: string; depth: number; isSection?: boolean; isAction?: boolean }> = [];
 
   config.forEach((section) => {
+    const sectionLabel = section.subheader || '';
     result.push({
-      value: `section:${section.subheader}`,
-      label: section.subheader,
+      value: `section:${section.subheader ?? ''}`,
+      label: sectionLabel,
       depth: 0,
       isSection: true,
     });
@@ -140,12 +141,6 @@ export default function RouterEditorDialog({ open, config, initialItem, suggeste
   const locationOptions = useMemo(() => flattenLocationOptions(config, excludedIds), [config, excludedIds]);
 
   const submit = handleSubmit((values) => {
-    const normalizedPath = values.path.replace(/^\/+/, '');
-
-    let targetSection = '';
-    let targetParentId = '';
-    let isNewSection = false;
-
     if (values.location === '__CREATE_NEW_GROUP__') {
       const trimmedName = values.newSectionName.trim();
       if (!trimmedName) {
@@ -153,16 +148,39 @@ export default function RouterEditorDialog({ open, config, initialItem, suggeste
         return;
       }
       const isDuplicate = config.some(
-        (s) => s.subheader.trim().toLowerCase() === trimmedName.toLowerCase()
+        (s) => (s.subheader || '').trim().toLowerCase() === trimmedName.toLowerCase()
       );
       if (isDuplicate) {
         setError('newSectionName', { message: 'Tên nhóm menu đã tồn tại' });
         return;
       }
-      targetSection = trimmedName;
-      targetParentId = '';
-      isNewSection = true;
-    } else if (values.location.startsWith('section:')) {
+      onSave({
+        isOnlyCreateGroup: true,
+        newSectionName: trimmedName,
+      });
+      onClose();
+      return;
+    }
+
+    if (!values.title.trim()) {
+      setError('title', { message: 'Nhập tiêu đề' });
+      return;
+    }
+    if (!values.path.trim()) {
+      setError('path', { message: 'Nhập đường dẫn' });
+      return;
+    }
+    if (!values.icon.trim()) {
+      setError('icon', { message: 'Chọn icon' });
+      return;
+    }
+
+    const normalizedPath = values.path.replace(/^\/+/, '');
+    let targetSection = '';
+    let targetParentId = '';
+    let isNewSection = false;
+
+    if (values.location.startsWith('section:')) {
       targetSection = values.location.slice('section:'.length);
       targetParentId = '';
     } else if (values.location.startsWith('route:')) {
@@ -209,14 +227,37 @@ export default function RouterEditorDialog({ open, config, initialItem, suggeste
     onClose();
   });
 
+  const isCreatingGroup = location === '__CREATE_NEW_GROUP__';
+
+  const dialogTitle = initialItem
+    ? 'Chỉnh sửa router'
+    : isCreatingGroup
+      ? 'Tạo nhóm menu mới'
+      : 'Thêm mới router';
+
+  const submitButtonLabel = isCreatingGroup ? 'Tạo nhóm menu' : 'Lưu router';
+
   return (
-    <CustomDialog open={open} onClose={onClose} title={initialItem ? 'Chỉnh sửa route' : 'Thêm route'} subtitle="Thay đổi có hiệu lực trong phiên hiện tại" dividers maxWidth="md" actions={<><Button onClick={onClose}>Hủy</Button><Button form={formId} type="submit" variant="contained" loading={isSubmitting}>Lưu route</Button></>}>
+    <CustomDialog
+      open={open}
+      onClose={onClose}
+      title={dialogTitle}
+      subtitle="Thay đổi có hiệu lực trong phiên hiện tại"
+      dividers
+      maxWidth={isCreatingGroup ? 'sm' : 'md'}
+      actions={
+        <>
+          <Button onClick={onClose}>Hủy</Button>
+          <Button form={formId} type="submit" variant="contained" loading={isSubmitting}>
+            {submitButtonLabel}
+          </Button>
+        </>
+      }
+    >
       <FormProvider id={formId} methods={methods} onSubmit={submit}>
         <Grid container spacing={2} sx={{ pt: 0.5 }}>
-          <Grid size={{ xs: 12, md: 6 }}><BaseTextField name="title" label="Tiêu đề *" placeholder="VD: Trang chủ, Người dùng..." /></Grid>
-          <Grid size={{ xs: 12, md: 6 }}><BaseTextField name="path" label="Đường dẫn *" placeholder="VD: user/profile (không cần / ở đầu)" /></Grid>
-          <Grid size={{ xs: 12, md: 6 }}><RouterIconPicker name="icon" /></Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          {/* Vị trí menu được đưa lên đầu tiên */}
+          <Grid size={{ xs: 12 }}>
             <BaseSelect
               name="location"
               label="Vị trí menu *"
@@ -233,7 +274,7 @@ export default function RouterEditorDialog({ open, config, initialItem, suggeste
                 if (opt?.isSection) {
                   return (
                     <Box sx={{ fontWeight: 700, color: 'text.primary', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>{opt.label}</span>
+                      <span>{opt.label || 'Mục gốc'}</span>
                       <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 400, fontStyle: 'italic', ml: 1 }}>
                         (Cấp gốc)
                       </Typography>
@@ -251,33 +292,56 @@ export default function RouterEditorDialog({ open, config, initialItem, suggeste
                   const opt = locationOptions.find((o) => o.value === selectedVal);
                   if (!opt) return '';
                   if (opt.isAction) return '+ Tạo nhóm menu mới';
-                  if (opt.isSection) return `${opt.label} (Cấp gốc nhóm)`;
+                  if (opt.isSection) return opt.label ? `${opt.label} (Cấp gốc nhóm)` : 'Mục gốc';
                   return opt.label;
                 },
               }}
             />
           </Grid>
-          {location === '__CREATE_NEW_GROUP__' && (
+
+          {/* Nếu chọn Tạo nhóm menu mới: chỉ hiển thị Tên nhóm menu mới */}
+          {isCreatingGroup && (
             <Grid size={{ xs: 12 }}>
               <BaseTextField
                 name="newSectionName"
                 label="Tên nhóm menu mới *"
                 placeholder="VD: Tiện ích, Báo cáo..."
                 autoFocus
-                helperText="Nhóm menu mới sẽ được tạo cùng lúc khi lưu route"
+                helperText="Nhóm menu mới sẽ được tạo trong danh sách mà không cần menu con ban đầu"
               />
             </Grid>
           )}
-          <Grid size={{ xs: 12, md: 6 }}><BaseTextField name="info" label="Badge" placeholder="VD: 12 hoặc Mới" /></Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Box sx={{ height: 40, display: 'flex', alignItems: 'center' }}>
-              <Stack direction="row" spacing={3}>
-                <BaseSwitch name="index" label="Index route" />
-                <BaseSwitch name="hideInMenu" label="Ẩn khỏi menu" />
-              </Stack>
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12 }}><Typography variant="caption" color="text.secondary">ID được tự sinh. Khi đổi URL route cha, các URL con cùng tiền tố cũng được cập nhật. Dữ liệu chỉ tồn tại đến khi tải lại trang.</Typography></Grid>
+
+          {/* Nếu KHÔNG PHẢI tạo nhóm menu mới: hiển thị đầy đủ các trường của router */}
+          {!isCreatingGroup && (
+            <>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <BaseTextField name="title" label="Tiêu đề *" placeholder="VD: Trang chủ, Người dùng..." />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <BaseTextField name="path" label="Đường dẫn *" placeholder="VD: user/profile (không cần / ở đầu)" />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <RouterIconPicker name="icon" />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <BaseTextField name="info" label="Badge" placeholder="VD: 12 hoặc Mới" />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Box sx={{ height: 40, display: 'flex', alignItems: 'center' }}>
+                  <Stack direction="row" spacing={3}>
+                    <BaseSwitch name="index" label="Index route" />
+                    <BaseSwitch name="hideInMenu" label="Ẩn khỏi menu" />
+                  </Stack>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="caption" color="text.secondary">
+                  ID được tự sinh. Khi đổi URL route cha, các URL con cùng tiền tố cũng được cập nhật. Dữ liệu chỉ tồn tại đến khi tải lại trang.
+                </Typography>
+              </Grid>
+            </>
+          )}
         </Grid>
       </FormProvider>
     </CustomDialog>

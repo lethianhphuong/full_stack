@@ -27,7 +27,7 @@ export function findRouteWithSection(
 ): { route: ManagedRoute; sectionTitle: string } | undefined {
   for (const section of config) {
     const route = findRoute([section], id);
-    if (route) return { route, sectionTitle: section.subheader };
+    if (route) return { route, sectionTitle: section.subheader || '' };
   }
   return undefined;
 }
@@ -41,7 +41,7 @@ export function collectDescendantIds(route: ManagedRoute) {
 
 export function addSection(config: ManagedRouteSection[], subheader: string): ManagedRouteSection[] {
   const trimmed = subheader.trim();
-  if (!trimmed || config.some((s) => s.subheader === trimmed)) return config;
+  if (!trimmed || config.some((s) => (s.subheader || '').toLowerCase() === trimmed.toLowerCase())) return config;
   const next = cloneConfig(config);
   next.push({ subheader: trimmed, items: [] });
   return next;
@@ -54,20 +54,20 @@ export function renameSection(
 ): ManagedRouteSection[] {
   const trimmed = newSubheader.trim();
   if (!trimmed || trimmed === oldSubheader) return config;
-  if (config.some((s) => s.subheader.toLowerCase() === trimmed.toLowerCase() && s.subheader !== oldSubheader)) {
+  if (config.some((s) => (s.subheader || '').toLowerCase() === trimmed.toLowerCase() && (s.subheader || '') !== oldSubheader)) {
     return config;
   }
   const next = cloneConfig(config);
-  const target = next.find((s) => s.subheader === oldSubheader);
+  const target = next.find((s) => (s.subheader || '') === oldSubheader);
   if (!target) return config;
   target.subheader = trimmed;
   return next;
 }
 
 function targetItems(config: ManagedRouteSection[], destination: RouteDestination) {
-  let section = config.find((item) => item.subheader === destination.section);
+  let section = config.find((item) => (item.subheader || '') === (destination.section || ''));
   if (!section) {
-    section = { subheader: destination.section, items: [] };
+    section = { subheader: destination.section || undefined, items: [] };
     config.push(section);
   }
   if (!destination.parentId) return section.items;
@@ -114,6 +114,10 @@ export function updateRoute(config: ManagedRouteSection[], id: string, updates: 
   return next;
 }
 
+function cleanupEmptyUnnamedSections(config: ManagedRouteSection[]): ManagedRouteSection[] {
+  return config.filter((section) => Boolean(section.subheader) || section.items.length > 0);
+}
+
 export function moveRoute(config: ManagedRouteSection[], id: string, destination: RouteDestination) {
   const next = cloneConfig(config);
   let route: ManagedRoute | undefined;
@@ -124,22 +128,29 @@ export function moveRoute(config: ManagedRouteSection[], id: string, destination
   const items = route ? targetItems(next, destination) : undefined;
   if (!route || !items) return config;
   items.splice(Math.min(destination.index ?? items.length, items.length), 0, route);
-  return next;
+  return cleanupEmptyUnnamedSections(next);
 }
 
 export function deleteRoute(config: ManagedRouteSection[], id: string) {
   const next = cloneConfig(config);
-  return next.some((section) => Boolean(remove(section.items, id))) ? next : config;
+  const changed = next.some((section) => Boolean(remove(section.items, id)));
+  return changed ? cleanupEmptyUnnamedSections(next) : config;
 }
 
 export function moveSection(config: ManagedRouteSection[], subheader: string, offset: -1 | 1): ManagedRouteSection[] {
-  const index = config.findIndex((s) => s.subheader === subheader);
+  const index = config.findIndex((s) => (s.subheader || '') === subheader);
   if (index < 0) return config;
   const target = index + offset;
   if (target < 0 || target >= config.length) return config;
   const next = cloneConfig(config);
   [next[index], next[target]] = [next[target], next[index]];
   return next;
+}
+
+export function deleteSection(config: ManagedRouteSection[], subheader: string): ManagedRouteSection[] {
+  const next = cloneConfig(config);
+  const filtered = next.filter((s) => (s.subheader || '') !== subheader);
+  return filtered.length !== config.length ? filtered : config;
 }
 
 export function moveRouteSibling(config: ManagedRouteSection[], id: string, offset: -1 | 1): ManagedRouteSection[] {

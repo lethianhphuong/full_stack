@@ -22,7 +22,7 @@ export type RouteConfig = {
 
 // Section config (cho nav grouping)
 export type RouteSectionConfig = {
-  subheader: string; // Section header (Vietnamese)
+  subheader?: string; // Section header (Vietnamese), optional cho các mục gốc không thuộc nhóm
   items: RouteConfig[];
 };
 
@@ -64,9 +64,9 @@ const ICONS = {
 // ----------------------------------------------------------------------
 
 export const staticRoutesConfig: RouteSectionConfig[] = [
-  // TỔNG QUAN
+  // TRANG CHỦ
   {
-    subheader: "Tổng quan",
+    subheader: '',
     items: [
       {
         id: "trang-chu",
@@ -76,6 +76,12 @@ export const staticRoutesConfig: RouteSectionConfig[] = [
         element: () => import("@/pages/dashboard"),
         index: true, // Đây cũng là index route cho /dashboard
       },
+    ],
+  },
+  // TỔNG QUAN
+  {
+    subheader: "Tổng quan",
+    items: [
       {
         id: "analytics",
         title: "Phân tích",
@@ -191,33 +197,25 @@ export const staticRoutesConfig: RouteSectionConfig[] = [
     subheader: "Components",
     items: [
       {
-        id: "components",
-        title: "Components",
-        path: "components",
+        id: "data-table",
+        title: "Data Table",
+        path: "components/data-table",
+        icon: ICONS.table,
+        element: () => import("@/pages/grid-demo"),
+      },
+      {
+        id: "form-fields",
+        title: "Form Fields",
+        path: "components/form-fields",
         icon: ICONS.components,
-        children: [
-          {
-            id: "data-table",
-            title: "Data Table",
-            path: "components/data-table",
-            icon: ICONS.table,
-            element: () => import("@/pages/grid-demo"),
-          },
-          {
-            id: "form-fields",
-            title: "Form Fields",
-            path: "components/form-fields",
-            icon: ICONS.components,
-            element: () => import("@/pages/form-fields-demo"),
-          },
-          {
-            id: "onlyoffice-editor",
-            title: "OnlyOffice Editor",
-            path: "components/onlyoffice-editor",
-            icon: ICONS.editor,
-            element: () => import("@/pages/onlyoffice"),
-          },
-        ],
+        element: () => import("@/pages/form-fields-demo"),
+      },
+      {
+        id: "onlyoffice-editor",
+        title: "OnlyOffice Editor",
+        path: "components/onlyoffice-editor",
+        icon: ICONS.editor,
+        element: () => import("@/pages/onlyoffice"),
       },
     ],
   },

@@ -47,7 +47,7 @@ export default function RouterStatusBar({ totalEntries, totalConfiguredEntries }
               fontSize: 12,
             }}
           >
-            Dữ liệu mock độc lập, không tác động router hoặc sidebar thật
+            Dữ liệu menu lấy từ server (GET /api/v1/menu)
           </Typography>
         </Stack>
       </Stack>
@@ -55,7 +55,7 @@ export default function RouterStatusBar({ totalEntries, totalConfiguredEntries }
       {/* Right source hint */}
       <Stack direction="row" alignItems="center" spacing={0.75}>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
-          Reload để quay về dữ liệu mock ban đầu
+          Bấm “Tải lại” để lấy lại dữ liệu từ server
         </Typography>
       </Stack>
     </Box>

@@ -3,8 +3,13 @@ import type { ManagedRouteSection } from './types';
 // Bản sao dữ liệu hiển thị từ staticRoutesConfig với UUID cố định, độc lập router thật.
 export const MOCK_MANAGED_ROUTES: ManagedRouteSection[] = [
   {
-    subheader: 'Tổng quan', items: [
+    subheader: '',
+    items: [
       { id: '00000000-0000-4000-8000-000000000001', title: 'Trang chủ', path: 'trang-chu', icon: 'solar:widget-5-bold-duotone', index: true },
+    ]
+  },
+  {
+    subheader: 'Tổng quan', items: [
       { id: '00000000-0000-4000-8000-000000000002', title: 'Phân tích', path: 'analytics', icon: 'solar:chart-square-bold-duotone' },
     ]
   },
@@ -40,13 +45,9 @@ export const MOCK_MANAGED_ROUTES: ManagedRouteSection[] = [
   },
   {
     subheader: 'Components', items: [
-      {
-        id: '00000000-0000-4000-8000-000000000016', title: 'Components', path: 'components', icon: 'solar:code-square-bold-duotone', children: [
-          { id: '00000000-0000-4000-8000-000000000017', title: 'Data Table', path: 'components/data-table', icon: 'solar:table-bold-duotone' },
-          { id: '00000000-0000-4000-8000-000000000018', title: 'Form Fields', path: 'components/form-fields', icon: 'solar:code-square-bold-duotone' },
-          { id: '00000000-0000-4000-8000-000000000019', title: 'OnlyOffice Editor', path: 'components/onlyoffice-editor', icon: 'solar:document-text-bold-duotone' },
-        ]
-      },
+      { id: '00000000-0000-4000-8000-000000000017', title: 'Data Table', path: 'components/data-table', icon: 'solar:table-bold-duotone' },
+      { id: '00000000-0000-4000-8000-000000000018', title: 'Form Fields', path: 'components/form-fields', icon: 'solar:code-square-bold-duotone' },
+      { id: '00000000-0000-4000-8000-000000000019', title: 'OnlyOffice Editor', path: 'components/onlyoffice-editor', icon: 'solar:document-text-bold-duotone' },
     ]
   },
   {

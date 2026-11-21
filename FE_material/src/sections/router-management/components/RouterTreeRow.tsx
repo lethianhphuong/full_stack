@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
@@ -26,7 +26,7 @@ interface RouterTreeRowProps {
   onSaveInline?: (id: string, updates: Partial<ManagedRoute>) => boolean | void;
 }
 
-export default function RouterTreeRow({
+export default React.memo(function RouterTreeRow({
   item,
   isCollapsed = false,
   existingPaths,
@@ -47,14 +47,15 @@ export default function RouterTreeRow({
   const [titleError, setTitleError] = useState('');
   const [pathError, setPathError] = useState('');
 
-  useEffect(() => {
+  const startEditing = () => {
     setTitle(item.title);
     setPath(item.path.replace(/^\/+/, ''));
     setInfo(item.info?.toString() ?? '');
     setHideInMenu(Boolean(item.hideInMenu));
     setTitleError('');
     setPathError('');
-  }, [item]);
+    setIsEditing(true);
+  };
 
   const handleSave = () => {
     const trimmedTitle = title.trim();
@@ -118,7 +119,7 @@ export default function RouterTreeRow({
   return (
     <TableRow
       hover
-      onDoubleClick={() => !isEditing && setIsEditing(true)}
+      onDoubleClick={() => !isEditing && startEditing()}
       sx={(theme) => ({
         bgcolor: isEditing
           ? alpha(theme.palette.primary.main, 0.05)
@@ -308,7 +309,7 @@ export default function RouterTreeRow({
               <IconButton
                 size="small"
                 aria-label={`Sửa nhanh ${item.title}`}
-                onClick={() => setIsEditing(true)}
+                onClick={startEditing}
                 sx={{ color: 'primary.main' }}
               >
                 <Iconify icon="solar:pen-2-linear" width={19} />
@@ -329,4 +330,4 @@ export default function RouterTreeRow({
       </TableCell>
     </TableRow>
   );
-}
+});

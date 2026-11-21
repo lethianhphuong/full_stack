@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -19,7 +20,7 @@ interface RouterToolbarProps {
   onResetConfig: () => void;
 }
 
-export default function RouterToolbar({
+export default React.memo(function RouterToolbar({
   filters,
   sections,
   onSearchChange,
@@ -29,6 +30,19 @@ export default function RouterToolbar({
   onResetConfig,
 }: RouterToolbarProps) {
   const theme = useTheme();
+  const [query, setQuery] = useState(filters.search);
+
+  useEffect(() => {
+    setQuery(filters.search);
+  }, [filters.search]);
+
+  useEffect(() => {
+    if (query === filters.search) return undefined;
+    const timer = setTimeout(() => {
+      onSearchChange(query);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [query, filters.search, onSearchChange]);
 
   return (
     <Box
@@ -46,8 +60,8 @@ export default function RouterToolbar({
       <TextField
         size="small"
         placeholder="Tìm theo tiêu đề, ID hoặc đường dẫn..."
-        value={filters.search}
-        onChange={(e) => onSearchChange(e.target.value)}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
         sx={{
           flex: 1,
           minWidth: { xs: 260, sm: 320, md: 380 },
@@ -98,7 +112,7 @@ export default function RouterToolbar({
           <MenuItem value="all">Nhóm Subheader: Tất cả</MenuItem>
           {sections.map((section) => (
             <MenuItem key={section.id} value={section.id}>
-              {section.title}
+              {section.title || 'Mục gốc'}
             </MenuItem>
           ))}
         </Select>
@@ -122,9 +136,9 @@ export default function RouterToolbar({
         >
           Đặt lại
         </Button>
-        <Button size="small" color="warning" variant="outlined" onClick={onResetConfig} startIcon={<Iconify icon="solar:refresh-circle-bold-duotone" width={18} />}>Khôi phục gốc</Button>
+        <Button size="small" color="warning" variant="outlined" onClick={onResetConfig} startIcon={<Iconify icon="solar:refresh-circle-bold-duotone" width={18} />}>Tải lại</Button>
         <Button size="small" variant="contained" onClick={onAdd} startIcon={<Iconify icon="solar:add-circle-bold-duotone" width={18} />}>Thêm route</Button>
       </Stack>
     </Box>
   );
-}
+});
